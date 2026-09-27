@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}RamonyanGWA{% endblock %}
+
+{% block content %}
+<section class="calc-section">
+  {% if errors %}
+  <div class="alert alert-error" role="alert" aria-live="polite">
+    <div class="alert-icon">
+      <svg class="icon icon-cross" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </div>
+    <div class="alert-content">
+      <p class="alert-title"><strong>Failed to evaluate: Please correct the following errors</strong></p>
+      <ul class="error-list">
+        {% for err in errors %}
+        <li>{{ err }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <form id="gwa-form" method="POST" action="/result" novalidate>
+    <!-- Panel 1: Semester load -->
+    <div class="card panel-load">
+      <div class="card-header band-blue">
+        <span class="badge-num" aria-hidden="true">1</span>
+        <h2>Semester load</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="prescribed_units">
+              Prescribed units <span class="req" aria-hidden="true">*</span>
+            </label>
+            <span class="field-hint" id="prescribed-hint">Required load from your curriculum checklist or COG</span>
+            <input type="number" id="prescribed_units" name="prescribed_units" class="form-control"
+              placeholder="e.g. 20" value="{{ prescribed_units }}" min="0.5" max="{{ dl_config.max_prescribed_units }}"
+              step="any" required aria-describedby="prescribed-hint">
+          </div>
+          <div class="form-group">
+            <label for="cog_gwa">
+              GWA shown in COG/SIAS <span class="optional">(optional)</span>
+            </label>
+            <span class="field-hint" id="cog-hint">Compare against your official printed COG or portal</span>
+            <input type="number" id="cog_gwa" name="cog_gwa" class="form-control" placeholder="e.g. 1.5588"
+              value="{{ cog_gwa }}" min="1.0" max="5.0" step="any" aria-describedby="cog-hint">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Course Information -->
+    <div class="card panel-courses">
+      <div class="card-header band-brick">
+        <div class="band-title-row">
+          <span class="badge-num" aria-hidden="true">2</span>
+          <svg class="icon icon-book" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <h2>Course Information</h2>
+        </div>
+        <p class="band-instruction">Enter each subject's units and final grade from your COG or SIAS.</p>
+        <div class="band-note-box">
+          <p>
+            <strong>Notice for non-credit subjects:</strong> set Type to <em>Non-credit</em> for subjects whose units
+            are in parentheses on your COG (for example NSTP). Their units count toward your total load but are left out
+            of the GWA.
+          </p>
+        </div>
+      </div>
+
+      <div class="card-body no-padding-mobile">
+        <div class="courses-table-container">
+          <div class="courses-table-header" aria-hidden="true">
+            <span class="th col-name">Course name <small>(optional)</small></span>
+            <span class="th col-type">Type</span>
+            <span class="th col-units">Units</span>
+            <span class="th col-grade">Grade</span>
+            <span class="th col-action"><span class="sr-only">Action</span></span>
+          </div>
+
+          <div id="subject-rows-container" class="subject-rows-list">
+            {% for r in rows %}
+            <div class="subject-row" data-row-index="{{ r.index }}">
+              <div class="row-cell cell-name">
+                <label for="name_{{ r.index }}" class="mobile-only-label">Course name</label>
+                <input type="text" id="name_{{ r.index }}" name="name_{{ r.index }}" class="form-control"
+                  placeholder="e.g. " value="{{ r.name }}">
+              </div>
+
+              <div class="row-cell cell-type">
+                <label for="type_{{ r.index }}" class="mobile-only-label">Type</label>
+                <select id="type_{{ r.index }}" name="type_{{ r.index }}" class="form-control select-type">
+                  <option value="credit" {% if r.type=='credit' %}selected{% endif %}>Credit</option>
+                  <option value="noncredit" {% if r.type=='noncredit' %}selected{% endif %}>Non-credit (units in
+                    parentheses on COG)</option>
+                </select>
+              </div>
+
+              <div class="row-cell cell-units">
+                <label for="units_{{ r.index }}" class="mobile-only-label">Units</label>
+                <input type="number" id="units_{{ r.index }}" name="units_{{ r.index }}"
+                  class="form-control input-units" placeholder="Units" value="{{ r.units }}" min="0.5"
+                  max="{{ dl_config.max_subject_units }}" step="any">
+              </div>
+
+              <div class="row-cell cell-grade">
+                <label for="mark_{{ r.index }}" class="mobile-only-label">Grade</label>
+                <select id="mark_{{ r.index }}" name="mark_{{ r.index }}" class="form-control select-grade">
+                  <option value="">Grade</option>
+                  {% for g in grade_scale_list %}
+                  <option value="{{ g.mark }}" {% if r.mark==g.mark %}selected{% endif %}>{{ g.mark }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="row-cell cell-action">
+                <button type="button" class="btn-icon btn-remove-row" aria-label="Remove subject"
+                  title="Remove subject">
+                  <svg class="icon icon-trash" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="table-actions">
+          <button type="button" id="btn-add-row" class="btn btn-outline btn-sm">
+            <svg class="icon icon-plus" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add subject
+          </button>
+        </div>
+
+        <!-- Live units meter -->
+        <div class="units-meter-container">
+          <div class="meter-bar-wrapper">
+            <div id="units-meter-progress" class="meter-bar-fill" style="width: 0%;"></div>
+          </div>
+          <div class="meter-status">
+            <span id="meter-status-icon" class="status-indicator-icon">
+              <!-- Dynamically populated icon -->
+            </span>
+            <span id="meter-status-text" class="meter-status-text">
+              0 of 0 units: 0 credit + 0 non-credit. Enter prescribed units to start.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary Action Button -->
+    <div class="form-submit-row">
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-check-dl">
+        Check Dean's List
+      </button>
+    </div>
+  </form>
+
+  <!-- Collapsible: How is my GWA computed? -->
+  <details class="collapsible-card" id="details-how-computed">
+    <summary class="collapsible-header">
+      <span class="summary-title">How is my GWA computed?</span>
+      <span class="summary-toggle-icon" aria-hidden="true">&#9662;</span>
+    </summary>
+    <div class="collapsible-content">
+      <div class="rules-summary">
+        <h4>Four Dean's List Criteria</h4>
+        <ol class="rules-list-numbered">
+          <li><strong>GWA Rule:</strong> General Weighted Average must be <strong>&le; {{ dl_config.max_gwa }}</strong>,
+            calculated over credit subjects only with numerical grades (sum of units &times; grade divided by credit
+            units).</li>
+          <li><strong>Lowest Grade Rule:</strong> No single subject grade lower than <strong>{{
+              dl_config.worst_allowed_grade }}</strong> (grades 2.5, 2.75, 3.0, and 5.0 disqualify).</li>
+          <li><strong>No 5.0, INC, or IP Rule:</strong> Must not have any failing mark (5.0), incomplete mark (INC), or
+            in-progress mark (IP).</li>
+          <li><strong>Full Load Rule:</strong> Total units (credit plus non-credit subjects such as NSTP) must meet or
+            exceed your prescribed semester load.</li>
+        </ol>
+      </div>
+
+      <div class="grading-scale-table-wrap">
+        <h4>Official Grading Scale Reference</h4>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Mark</th>
+              <th>Grade Point</th>
+              <th>Percentage</th>
+              <th>Dean's List Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for g in grade_scale_list %}
+            <tr>
+              <td><strong>{{ g.mark }}</strong></td>
+              <td>{{ g.grade_point if g.grade_point is not none else 'None' }}</td>
+              <td>{% if g.min_percent %}{{ g.min_percent }}% &ndash; {{ g.max_percent }}%{% elif g.mark == '5.0'
+                %}Failed{% else %}Special mark{% endif %}</td>
+              <td>
+                {% if g.blocks_dl %}
+                <span class="status-tag tag-fail">Disqualifies</span>
+                {% elif g.grade_point and g.grade_point > dl_config.worst_allowed_grade %}
+                <span class="status-tag tag-fail">Fails Rule 2 (&gt;2.25)</span>
+                {% else %}
+                <span class="status-tag tag-pass">Eligible</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- Template row for JS clone -->
+<template id="row-template">
+  <div class="subject-row" data-row-index="__INDEX__">
+    <div class="row-cell cell-name">
+      <label for="name___INDEX__" class="mobile-only-label">Course name</label>
+      <input type="text" id="name___INDEX__" name="name___INDEX__" class="form-control" placeholder="e.g. CC 101">
+    </div>
+    <div class="row-cell cell-type">
+      <label for="type___INDEX__" class="mobile-only-label">Type</label>
+      <select id="type___INDEX__" name="type___INDEX__" class="form-control select-type">
+        <option value="credit" selected>Credit</option>
+        <option value="noncredit">Non-credit (units in parentheses on COG)</option>
+      </select>
+    </div>
+    <div class="row-cell cell-units">
+      <label for="units___INDEX__" class="mobile-only-label">Units</label>
+      <input type="number" id="units___INDEX__" name="units___INDEX__" class="form-control input-units"
+        placeholder="Units" min="0.5" max="{{ dl_config.max_subject_units }}" step="any">
+    </div>
+    <div class="row-cell cell-grade">
+      <label for="mark___INDEX__" class="mobile-only-label">Grade</label>
+      <select id="mark___INDEX__" name="mark___INDEX__" class="form-control select-grade">
+        <option value="" selected>Grade</option>
+        {% for g in grade_scale_list %}
+        <option value="{{ g.mark }}">{{ g.mark }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row-cell cell-action">
+      <button type="button" class="btn-icon btn-remove-row" aria-label="Remove subject" title="Remove subject">
+        <svg class="icon icon-trash" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+</template>
+{% endblock %}

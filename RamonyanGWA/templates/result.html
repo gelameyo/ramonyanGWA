@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Your GWA Result - RamonyanGWA{% endblock %}
+
+{% block content %}
+<div class="result-container">
+  <!-- 1. The Result Card -->
+  <section class="card result-hero-card">
+    <div class="card-header band-gold">
+      <h2>YOUR GWA RESULT</h2>
+    </div>
+    <div class="card-body result-hero-body">
+      <!-- Circular Badge -->
+      <div class="gwa-badge-circle" aria-label="Computed GWA {{ eval_result.gwa_display }}">
+        <span class="gwa-badge-title">SEMESTER GWA</span>
+        <span class="gwa-badge-value">{{ eval_result.gwa_display }}</span>
+        {% if eval_result.is_provisional %}
+        <span class="chip-provisional" title="Incomplete or In-Progress credit courses excluded">Provisional</span>
+        {% endif %}
+      </div>
+
+      <!-- Status Pill as Page's H1 -->
+      <div class="status-pill-wrapper">
+        <h1 class="status-pill {% if eval_result.is_qualified %}status-pill-pass{% else %}status-pill-fail{% endif %}">
+          {% if eval_result.is_qualified %}
+          <svg class="icon icon-check-circle" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Qualified</span>
+          {% else %}
+          <svg class="icon icon-cross-circle" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>Not qualified</span>
+          {% endif %}
+        </h1>
+        <p class="status-explanation">{{ eval_result.status_sentence }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Standing Bar -->
+  <section class="card standing-card">
+    <div class="card-body">
+      <h3 class="section-title">Dean's List standing</h3>
+      <div class="standing-track-wrapper" style="--marker-pos: {{ '%.4f'|format(eval_result.standing_position * 100) }}%;">
+        <div class="standing-track">
+          <div class="track-zone zone-dl" style="width: 37.5%;"></div>
+          <div class="track-zone zone-over" style="width: 62.5%;"></div>
+          <div class="track-tick-limit" style="left: 37.5%;" aria-hidden="true">
+            <span class="limit-line"></span>
+            <span class="limit-label">Limit 1.75</span>
+          </div>
+          {% if eval_result.computed_gwa is not none %}
+          <div class="track-marker" aria-label="Your GWA {{ eval_result.gwa_display }}">
+            <div class="marker-pin"></div>
+            <div class="marker-bubble">Your GWA {{ eval_result.gwa_display }}</div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="standing-zone-labels" aria-hidden="true">
+          <span class="label-zone-pass">Dean's List range (1.0 to 1.75)</span>
+          <span class="label-zone-fail">Above the limit (over 1.75)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Stat Tiles -->
+  <section class="stat-tiles-grid">
+    <div class="stat-tile">
+      <span class="stat-label">Total units</span>
+      <strong class="stat-value">{{ eval_result.total_units }}</strong>
+      <span class="stat-sub">Credit + Non-credit</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">Credited units</span>
+      <strong class="stat-value">{{ eval_result.credited_units }}</strong>
+      <span class="stat-sub">Counted in GWA</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-label">Non-credit units</span>
+      <strong class="stat-value">{{ eval_result.noncredit_units }}</strong>
+      <span class="stat-sub">Excluded from GWA</span>
+    </div>
+  </section>
+
+  <!-- 4. SIAS Comparison Card -->
+  <section class="card sias-card">
+    <div class="card-header band-blue">
+      <h2>SIAS & COG Grade Comparison</h2>
+    </div>
+    <div class="card-body">
+      <p class="sias-intro">These figures match the official SIS / SIAS Term Grades screen and your printed Certificate of Grades (COG):</p>
+      
+      <div class="sias-data-grid">
+        <div class="sias-item">
+          <span class="sias-label">Semester GWA</span>
+          <strong class="sias-value">{{ eval_result.gwa_display }}</strong>
+          {% if eval_result.is_provisional %}
+          <span class="chip-provisional-inline">Provisional</span>
+          {% endif %}
+        </div>
+
+        <div class="sias-item">
+          <span class="sias-label">WAvg (credit units only)</span>
+          <strong class="sias-value">{{ eval_result.gwa_display }}</strong>
+          <span class="sias-sub">({{ eval_result.wavg_working }})</span>
+        </div>
+
+        <div class="sias-item">
+          <span class="sias-label">Equiv Grade (all units)</span>
+          <strong class="sias-value">{{ eval_result.equiv_grade_display }}</strong>
+          <span class="sias-sub">Informational only &bull; all units & grades</span>
+        </div>
+
+        <div class="sias-item">
+          <span class="sias-label">Units</span>
+          <strong class="sias-value">{{ eval_result.units_summary_text }}</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. SIAS Notice Card (if COG/SIAS GWA entered) -->
+  {% if eval_result.sias_notice %}
+  <aside class="notice-card notice-gold" role="note">
+    <div class="notice-icon" aria-hidden="true">
+      <svg class="icon icon-info" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+    </div>
+    <div class="notice-text">
+      <p>{{ eval_result.sias_notice }}</p>
+    </div>
+  </aside>
+  {% endif %}
+
+  <!-- 6. How is this calculated? collapsible -->
+  <details class="collapsible-card" id="details-working">
+    <summary class="collapsible-header">
+      <span class="summary-title">How is this calculated?</span>
+      <span class="summary-toggle-icon" aria-hidden="true">&#9662;</span>
+    </summary>
+    <div class="collapsible-content">
+      <div class="calc-breakdown">
+        <h4>GWA Computation Formula</h4>
+        <p class="formula-box">
+          <code>GWA = &sum;(Units &times; Grade) &divide; &sum;(Credit Units)</code>
+        </p>
+        <p>
+          Working for credit subjects: <strong>{{ eval_result.wavg_working }}</strong> = <strong>{{ eval_result.gwa_display }}</strong> (rounded half-up to 4 decimal places).
+        </p>
+
+        <h4>Dean's List Rule Criteria Limits</h4>
+        <ul class="limits-list">
+          <li><strong>GWA:</strong> Must be &le; {{ dl_config.max_gwa }}</li>
+          <li><strong>Lowest Grade:</strong> Must be &le; {{ dl_config.worst_allowed_grade }}</li>
+          <li><strong>Disqualifying Marks:</strong> 5.0 (Failed), INC (Incomplete), and IP (In-Progress) are strictly prohibited.</li>
+          <li><strong>Prescribed Full Load:</strong> Minimum {{ prescribed_units }} units required (includes credited and non-credited load).</li>
+        </ul>
+
+        <h4>Grading Scale Reference</h4>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Mark</th>
+              <th>Grade Point</th>
+              <th>Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for g in grade_scale_list %}
+            <tr>
+              <td><strong>{{ g.mark }}</strong></td>
+              <td>{{ g.grade_point if g.grade_point is not none else 'None' }}</td>
+              <td>{% if g.min_percent %}{{ g.min_percent }}% &ndash; {{ g.max_percent }}%{% elif g.mark == '5.0' %}Failed{% else %}Special mark{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </details>
+
+  <!-- 7. Dean's List Rules Section -->
+  <section class="card rules-section">
+    <div class="card-header band-green">
+      <h2>Dean's List Rules</h2>
+    </div>
+    <div class="card-body">
+      <div class="rules-grid">
+        {% for r in eval_result.rule_results %}
+        <div class="rule-card {% if r.passed %}rule-pass{% else %}rule-fail{% endif %}">
+          <div class="rule-card-header">
+            <span class="rule-name">{{ r.label }}</span>
+            <span class="rule-status-badge {% if r.passed %}badge-pass{% else %}badge-fail{% endif %}">
+              {% if r.passed %}
+              <svg class="icon icon-check" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Passed</span>
+              {% else %}
+              <svg class="icon icon-cross" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span>Failed</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="rule-card-body">
+            <div class="rule-val-row">
+              <span class="rule-val-label">Actual:</span>
+              <strong class="rule-val-text">{{ r.actual_value }}</strong>
+            </div>
+            <div class="rule-req-row">
+              <span class="rule-req-label">Requirement:</span>
+              <span class="rule-req-text">{{ r.requirement }}</span>
+            </div>
+            {% if r.detail %}
+            <p class="rule-detail">{{ r.detail }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Subjects entered table -->
+  <section class="card subjects-section">
+    <div class="card-header band-brick">
+      <h2>Subjects entered</h2>
+    </div>
+    <div class="card-body no-padding-mobile">
+      <div class="table-responsive">
+        <table class="data-table subjects-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Type</th>
+              <th>Units</th>
+              <th>Grade</th>
+              <th>In the GWA</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in eval_result.subjects_display %}
+            <tr>
+              <td><strong>{{ s.name }}</strong></td>
+              <td>{{ s.subject_type }}</td>
+              <td>{{ s.units_display }}</td>
+              <td>{{ s.mark }}</td>
+              <td>
+                {% if s.in_gwa %}
+                <span class="in-gwa-yes">
+                  <svg class="icon icon-check" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Yes
+                </span>
+                {% else %}
+                <span class="in-gwa-no">
+                  <svg class="icon icon-cross" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  No: {{ s.reason_not_in_gwa }}
+                </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Navigation & Action Buttons -->
+  <div class="result-actions-row">
+    <form method="POST" action="/edit" class="action-form">
+      <input type="hidden" name="prescribed_units" value="{{ prescribed_units }}">
+      <input type="hidden" name="cog_gwa" value="{{ cog_gwa }}">
+      {% for s in raw_subjects %}
+      <input type="hidden" name="name_{{ loop.index0 }}" value="{{ s.name }}">
+      <input type="hidden" name="type_{{ loop.index0 }}" value="{{ s.type }}">
+      <input type="hidden" name="units_{{ loop.index0 }}" value="{{ s.units }}">
+      <input type="hidden" name="mark_{{ loop.index0 }}" value="{{ s.mark }}">
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-lg" id="btn-edit-grades">
+        Edit grades
+      </button>
+    </form>
+    <a href="/" class="btn btn-outline btn-lg" id="btn-new-calc">
+      New calculation
+    </a>
+  </div>
+</div>
+{% endblock %}

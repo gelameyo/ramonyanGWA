@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}RamonyanGWA{% endblock %} - Check your GWA and Dean's List standing</title>
+  <meta name="description"
+    content="Check your semester GWA and Dean's List standing for Ramon Magsaysay State University students. Private, instant, and matches SIAS Term Grades.">
+  <link rel="stylesheet" href="/style.css">
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="container header-content">
+      <div class="brand">
+        <span class="brand-text">Ramonyan<span class="brand-chip">GWA</span></span>
+      </div>
+      <p class="tagline">Check your GWA and Dean's List standing.</p>
+    </div>
+  </header>
+
+  <!-- Info Strip -->
+  <div class="info-strip-wrapper">
+    <div class="container">
+      <aside class="info-strip" role="note" aria-label="System Notice">
+        <svg class="icon icon-info" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <p>Welcome to RamonyanGWA! Enter your prescribed units, subjects, grades and units from your COG or SIAS.
+          Nothing you type is saved.</p>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="container main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container">
+      <p>RamonyanGWA. Made by BS Information Technology 2nd Year College AY. 2026-2027 for Ramonians. Not an official
+        university system; confirm your standing with the registrar.</p>
+    </div>
+  </footer>
+
+  <script src="/app.js" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>
